@@ -1,4 +1,4 @@
-Here is the complete, production-ready `README.md`. You can copy and paste this directly into your GitHub web editor or into the local `README.md` file:
+
 
 ```markdown
 # Edge Industrial Automated Optical Inspection (AOI) System
