@@ -1,20 +1,20 @@
-
+Here is the complete, comprehensive `README.md` incorporating all the installation nuances, PowerShell execution policies, module execution for pytest, and full architecture details:
 
 ```markdown
 # Edge Industrial Automated Optical Inspection (AOI) System
 
-A low-latency, modular industrial machine vision microservice designed for automated dimensional metrology and surface defect detection on high-speed manufacturing lines.
+A low-latency, modular industrial machine vision microservice engineered for real-time dimensional metrology, surface defect segmentation, and automated routing on high-speed factory assembly lines.
 
-Built with Python, OpenCV, and FastAPI, this system inspects cylindrical and machined components (such as bushings, bearings, and flanges), validates geometric tolerances against strict engineering thresholds, makes automated sorting decisions, and streams real-time visual telemetry to factory operators.
+Built with Python, OpenCV, and FastAPI, this system inspects cylindrical and machined components (such as bushings, bearings, and flanges), validates geometric tolerances against strict engineering thresholds, executes deterministic sorting states, and serves an operator heads-up display (HUD) alongside a live factory analytics stream.
 
 ---
 
-## Architecture Overview
+## Architecture & Data Flow
 
 ```text
  ┌────────────────────────────────────────────────────────┐
  │   Calibrated Optical Ingestion (GigE / Mock Stream)    │
- │   - 1280x720 @ 25 FPS                                  │
+ │   - Resolution: 1280x720 @ 25 FPS                      │
  │   - Sub-millimeter drift & synthetic defect injection  │
  └───────────────────────────┬────────────────────────────┘
                              │
@@ -54,10 +54,10 @@ Built with Python, OpenCV, and FastAPI, this system inspects cylindrical and mac
 
 ## Key Capabilities
 
-* **High-Precision Metrology:** Evaluates Outer Diameter (OD), Inner Diameter (ID), and concentricity offset against configurable limits ($\pm 0.10\text{ mm}$) using sub-pixel contour fitting.
+* **High-Precision Metrology:** Evaluates Outer Diameter (OD), Inner Diameter (ID), and concentricity offset against strict tolerances ($\pm 0.10\text{ mm}$) using sub-pixel contour detection.
 * **Surface Anomaly Detection:** Isolates the functional annular zone of components to flag scratches, burrs, and voids using localized gradient analysis.
 * **Deterministic Routing Logic:** Evaluates incoming parts against `config/tolerances.yaml` to assign routing commands (`PASS`, `REJECT_DIMENSION`, `REJECT_SURFACE`, `SCRAP`).
-* **Operator Visual HUD:** Overlays dynamic digital calipers, concentricity alignment crosshairs, and status banners directly onto the live feed.
+* **Operator Visual HUD:** Overlays dynamic digital calipers, concentricity crosshairs, and status banners directly onto the live inspection feed.
 * **Factory Telemetry & Quality Tracking:** Streams rolling yield metrics, part counts, and dimensional distributions via REST endpoints while maintaining an append-only audit trail in SQLite.
 * **Containerized Edge Deployment:** Dockerized configuration ready for deployment on industrial IPCs and edge accelerators (e.g., NVIDIA Jetson).
 
@@ -92,59 +92,94 @@ aoi-inspection-system/
 
 ---
 
-## Quickstart
+## Quickstart Guide
 
 ### 1. Prerequisites
 
-* Python 3.10 or 3.11
-* Virtual environment tool (`venv`)
+* Python 3.10, 3.11, or 3.13
+* Git
 
-### 2. Installation & Setup
+---
+
+### 2. Installation & Environment Setup
+
+#### Clone the Repository
 
 ```bash
-# Clone the repository
 git clone [https://github.com/Bamstep/aoi-inspection-system.git](https://github.com/Bamstep/aoi-inspection-system.git)
 cd aoi-inspection-system
 
-# Create and activate virtual environment
+```
+
+#### Set Up Virtual Environment
+
+**On Windows (PowerShell):**
+
+```powershell
 python -m venv venv
-# On Windows (PowerShell):
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\venv\Scripts\Activate.ps1
-# On Linux/macOS:
+
+```
+
+**On Windows (Command Prompt):**
+
+```cmd
+python -m venv venv
+.\venv\Scripts\activate.bat
+
+```
+
+**On Linux / macOS:**
+
+```bash
+python3 -m venv venv
 source venv/bin/activate
 
-# Install dependencies
+```
+
+#### Install Dependencies
+
+```bash
 pip install -r requirements.txt
 
 ```
 
+---
+
 ### 3. Run Unit Tests
 
-Validate the metrology algorithms and tolerance boundary checks:
+Execute tests using Python's module flag (`-m`) to guarantee the root directory is placed on Python's module search path:
 
 ```bash
-pytest tests/ -v
+python -m pytest tests/ -v
 
 ```
 
-### 4. Start the Edge Inspection Node
+---
+
+### 4. Launch the Edge Inspection Server
+
+Start the application daemon:
 
 ```bash
 python main.py
 
 ```
 
-Open your browser and navigate to:
+Once running, access the system via browser:
 
-* **Live Inspection Dashboard:** `http://127.0.0.1:8000`
-* **Real-Time Telemetry Stats:** `http://127.0.0.1:8000/stats`
-* **Interactive API Docs:** `http://127.0.0.1:8000/docs`
+* **Live Inspection Dashboard & HUD:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
+* **Real-time Telemetry & Yield Stats:** [http://127.0.0.1:8000/stats](https://www.google.com/search?q=http://127.0.0.1:8000/stats)
+* **Interactive OpenAPI Specs:** [http://127.0.0.1:8000/docs](https://www.google.com/search?q=http://127.0.0.1:8000/docs)
+
+To shut down the service, press `Ctrl + C` in your terminal.
 
 ---
 
 ## Configuration
 
-Tolerances and physical scale factors are defined in `config/tolerances.yaml`:
+All physical scale factors and quality control thresholds are configured in `config/tolerances.yaml`:
 
 ```yaml
 scale:
@@ -161,6 +196,16 @@ defect_detection:
   min_defect_area_px: 12
 
 ```
+
+---
+
+## Troubleshooting
+
+| Issue | Cause | Resolution |
+| --- | --- | --- |
+| `PSSecurityException: running scripts is disabled` | Windows PowerShell default execution policy | Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` before calling `.\venv\Scripts\Activate.ps1`. |
+| `ModuleNotFoundError: No module named 'src'` | `pytest` run without root directory on `sys.path` | Run tests as a module: `python -m pytest tests/ -v`. |
+| `port 8000 already in use` | A previous instance of the server is still running | Terminate the existing process or run Uvicorn on another port with `uvicorn src.api.app:app --port 8001`. |
 
 ---
 
@@ -182,7 +227,5 @@ docker run -d -p 8000:8000 --name aoi_node aoi-inspection-system
 ## License
 
 This project is open-source and available under the [MIT License](https://www.google.com/search?q=LICENSE).
-
-```
 
 ```
