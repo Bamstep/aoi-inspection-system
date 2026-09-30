@@ -1,0 +1,19 @@
+part_type: "machined_pin_spacer"
+units: "mm"
+pixel_to_mm_ratio: 0.045
+
+tolerances:
+  outer_diameter:
+    nominal: 25.00
+    upper_tol: 0.15
+    lower_tol: 0.15
+  inner_hole_diameter:
+    nominal: 8.50
+    upper_tol: 0.10
+    lower_tol: 0.10
+  concentricity_max_offset: 0.20
+
+critical_defects:
+  - "scratch"
+  - "burr"
+  - "void"
